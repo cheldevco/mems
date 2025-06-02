@@ -104,53 +104,60 @@
 
     <script>
         const GITHUB_USERNAME = 'cheldevco'; // Укажите ваше имя пользователя GitHub
-        const REPO_NAME = 'mems'; // Укажите имя вашего репозитория
-        const BRANCH_NAME = 'main'; // Укажите ветку, в которой хранятся изображения
+const REPO_NAME = 'mems'; // Укажите имя вашего репозитория
+const BRANCH_NAME = 'main'; // Укажите ветку, в которой хранятся изображения
 
-        document.getElementById('upload-button').addEventListener('click', function() {
-            const memeTitle = document.getElementById('meme-title').value;
-            const memeDescription = document.getElementById('meme-description').value;
-            const memeImage = document.getElementById('meme-image').files[0];
+document.getElementById('upload-button').addEventListener('click', function() {
+    const memeTitle = document.getElementById('meme-title').value;
+    const memeDescription = document.getElementById('meme-description').value;
+    const memeImage = document.getElementById('meme-image').files[0];
 
-            if (memeTitle && memeDescription && memeImage) {
-                const reader = new FileReader();
-                reader.onloadend = function() {
-                    const base64data = reader.result.split(',')[1];
-                    const fileName = memeImage.name;
+    if (memeTitle && memeDescription && memeImage) {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            const base64data = reader.result.split(',')[1];
+            const fileName = memeImage.name;
 
-                    // Загрузка изображения в репозиторий
-                    fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/memes/${fileName}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': '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', // Укажите ваш токен доступа
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            message: `Добавление мема: ${memeTitle}`,
-                            content: base64data,
-                            branch: BRANCH_NAME
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.content) {
-                            loadMemes(); // Перезагрузка мемов
-                            document.getElementById('meme-title').value = '';
-                            document.getElementById('meme-description').value = '';
-                            document.getElementById('meme-image').value = '';
-                        } else {
-                            alert('Ошибка загрузки изображения: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Ошибка загрузки изображения:", error);
-                    });
+            // Загрузка изображения в репозиторий
+            fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/memes/${fileName}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': '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', // Укажите ваш токен доступа
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `Добавление мема: ${memeTitle}`,
+                    content: base64data,
+                    branch: BRANCH_NAME
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message); });
                 }
-                reader.readAsDataURL(memeImage);
-            } else {
-                alert('Пожалуйста, заполните все поля.');
-            }
-        });
+                return response.json();
+            })
+            .then(data => {
+                if (data.content) {
+                    loadMemes(); // Перезагрузка мемов
+                    document.getElementById('meme-title').value = '';
+                    document.getElementById('meme-description').value = '';
+                    document.getElementById('meme-image').value = '';
+                } else {
+                    alert('Ошибка загрузки изображения: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Ошибка загрузки изображения:", error);
+                alert('Ошибка загрузки изображения: ' + error.message);
+            });
+        }
+        reader.readAsDataURL(memeImage);
+    } else {
+        alert('Пожалуйста, заполните все поля.');
+    }
+});
+
 
         // Функция для загрузки мемов из репозитория
         function loadMemes() {
