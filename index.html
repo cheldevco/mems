@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сайт Мемов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        #upload-section {
+            margin-bottom: 20px;
+        }
+        #meme-url {
+            width: 80%;
+            padding: 10px;
+        }
+        #upload-button {
+            padding: 10px 20px;
+        }
+        .meme {
+            margin: 10px 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Сайт Мемов</h1>
+    </header>
+    <main>
+        <section id="upload-section">
+            <h2>Опубликовать свой мем</h2>
+            <input type="text" id="meme-url" placeholder="URL мема" required>
+            <button id="upload-button">Опубликовать</button>
+        </section>
+        <section id="memes-archive">
+            <h2>Архив Мемов</h2>
+            <div id="memes-container"></div>
+        </section>
+    </main>
+    <script>
+        // Ваши настройки Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwa_QQj01aKBiG6j66TRUzgwZ9Mii5dD0",
+            authDomain: "mems-76392.firebaseapp.com",
+            projectId: "mems-76392",
+            storageBucket: "mems-76392.firebasestorage.app",
+            messagingSenderId: "363836715675",
+            appId: "1:363836715675:web:e72d53a4ecae0da2864c3e"
+        };
+
+        // Инициализация Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        document.getElementById('upload-button').addEventListener('click', function() {
+            const memeUrl = document.getElementById('meme-url').value;
+            if (memeUrl) {
+                // Сохранение в Firestore
+                db.collection('memes').add({ url: memeUrl }).then(() => {
+                    loadMemes(); // Перезагрузка мемов
+                    document.getElementById('meme-url').value = '';
+                });
+            } else {
+                alert('Пожалуйста, введите URL мема.');
+            }
+        });
+
+        // Функция для загрузки мемов из Firestore
+        function loadMemes() {
+            const memesContainer = document.getElementById('memes-container');
+            memesContainer.innerHTML = ''; // Очистка контейнера
+            db.collection('memes').get().then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const memeDiv = document.createElement('div');
+                    memeDiv.classList.add('meme');
+                    memeDiv.innerHTML = `<img src="${doc.data().url}" alt="Мем">`;
+                    memesContainer.appendChild(memeDiv);
+                });
+            });
+        }
+
+        // Загрузка мемов при загрузке страницы
+        window.onload = loadMemes;
+    </script>
+</body>
+</html>
