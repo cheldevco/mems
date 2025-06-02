@@ -23,22 +23,58 @@
         #upload-section {
             margin-bottom: 20px;
         }
-        #meme-url {
+        #meme-title, #meme-description {
             width: 80%;
             padding: 10px;
+            margin-bottom: 10px;
         }
         #upload-button {
             padding: 10px 20px;
         }
         .meme {
             margin: 10px 0;
+            cursor: pointer;
         }
         img {
             max-width: 100%;
             height: auto;
         }
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
 </head>
 <body>
@@ -48,7 +84,9 @@
     <main>
         <section id="upload-section">
             <h2>Опубликовать свой мем</h2>
-            <input type="text" id="meme-url" placeholder="URL мема" required>
+            <input type="text" id="meme-title" placeholder="Название мема" required>
+            <input type="text" id="meme-description" placeholder="Описание мема" required>
+            <input type="file" id="meme-image" accept="image/*" required>
             <button id="upload-button">Опубликовать</button>
         </section>
         <section id="memes-archive">
@@ -56,6 +94,17 @@
             <div id="memes-container"></div>
         </section>
     </main>
+
+    <!-- Модальное окно -->
+    <div id="memeModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title"></h2>
+            <img id="modal-image" src="" alt="Мем" style="max-width: 100%; height: auto;">
+            <p id="modal-description"></p>
+        </div>
+    </div>
+
     <script>
         // Ваши настройки Firebase
         const firebaseConfig = {
@@ -70,17 +119,30 @@
         // Инициализация Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const storage = firebase.storage();
 
         document.getElementById('upload-button').addEventListener('click', function() {
-            const memeUrl = document.getElementById('meme-url').value;
-            if (memeUrl) {
-                // Сохранение в Firestore
-                db.collection('memes').add({ url: memeUrl }).then(() => {
-                    loadMemes(); // Перезагрузка мемов
-                    document.getElementById('meme-url').value = '';
+            const memeTitle = document.getElementById('meme-title').value;
+            const memeDescription = document.getElementById('meme-description').value;
+            const memeImage = document.getElementById('meme-image').files[0];
+
+            if (memeTitle && memeDescription && memeImage) {
+                const storageRef = storage.ref();
+                const memeRef = storageRef.child(`memes/${memeImage.name}`);
+
+                memeRef.put(memeImage).then(() => {
+                    memeRef.getDownloadURL().then((url) => {
+                        // Сохранение в Firestore
+                        db.collection('memes').add({ title: memeTitle, description: memeDescription, url: url }).then(() => {
+                            loadMemes(); // Перезагрузка мемов
+                            document.getElementById('meme-title').value = '';
+                            document.getElementById('meme-description').value = '';
+                            document.getElementById('meme-image').value = '';
+                        });
+                    });
                 });
             } else {
-                alert('Пожалуйста, введите URL мема.');
+                alert('Пожалуйста, заполните все поля.');
             }
         });
 
@@ -90,12 +152,26 @@
             memesContainer.innerHTML = ''; // Очистка контейнера
             db.collection('memes').get().then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
+                    const memeData = doc.data();
                     const memeDiv = document.createElement('div');
                     memeDiv.classList.add('meme');
-                    memeDiv.innerHTML = `<img src="${doc.data().url}" alt="Мем">`;
+                    memeDiv.innerHTML = `<strong>${memeData.title}</strong><br><img src="${memeData.url}" alt="Мем" onclick="showModal('${memeData.title}', '${memeData.url}', '${memeData.description}')">`;
                     memesContainer.appendChild(memeDiv);
                 });
             });
+        }
+
+        // Функция для отображения модального окна
+        function showModal(title, url, description) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-image').src = url;
+            document.getElementById('modal-description').innerText = description;
+            document.getElementById('memeModal').style.display = "block";
+        }
+
+        // Закрытие модального окна
+        document.querySelector('.close').onclick = function() {
+            document.getElementById('memeModal').style.display = "none";
         }
 
         // Загрузка мемов при загрузке страницы
