@@ -4,18 +4,44 @@
         <title>мемчики</title>
     </head>
     <style>
-        
+        div{
+            margin: 10px;
+            border: 1px solid #222;
+        }
+        #menu{
+            background-color: #ddd;
+            float: left;
+            width: 150px;
+        }
         #header{
             background-color: gray;
+            width: auto;
+            height: 10%;
         }
         #body{
             
             background-color: darkgray;
+            width: auto;
+            height: 500px;
+        }
+        #futer{
+            width: auto;
+            height: 20%;
+            background-color: dimgray;
         }
         h1, h2, li, h4, a{
             text-align: center;
         }
         @media screen {
+            div{
+                margin: 10px;
+                border: 1px solid #222;
+            }
+            #menu{
+                background-color: #ddd;
+                float: top;
+                width: 150px;
+            }
             #header{
                 width: auto;
                 height: 10%;
@@ -24,16 +50,16 @@
             }
             #body{
                 width: auto;
-                
+                height: 500px;
                 background-color: darkgray;
-                height: 70%;
+                
             }
             #futer{
 
                 width: auto;
-                
-                background-color: dimgray;
                 height: 20%;
+                background-color: dimgray;
+                
             }
             h1, h2, li, h4{
                 width: auto;
@@ -41,20 +67,38 @@
                 text-align: center;
 
             }
+            img{
+                image-rendering: auto;
+                align-content: center;
+            }
         }
     </style>
     <body>
-        <meta name="viewport" content="width=device-width; initial-scale=1.0">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <div id="header">
              <h1>сайт мемчиков</h1>
         </div>
+        
         <div id="body">
             <h2>мемы:</h2>
-            <li>italian brainrot</li>
-            <li>окак</li>
+            <li>
+                italian brainrot
+                
+            </li>
+            <img scr="sahur.png" alt="sahur">
+            <li>
+                окак
+                
+            </li>
+            <img scr="okak.jpg" alt="okak">
             <li>(а ниче тот факт)</li>
-            <li>ПОН</li>
-            <h4>сделано командой cheldev</h4>
+
+            <li>
+                ПОН
+                
+            </li>
+            <img scr="pon.jpg" alt="ПОН">
         </div>
         <div id="futer">
             
