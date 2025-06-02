@@ -1,205 +1,32 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сайт Мемов с GitHub API</title>
+<html>
+    <head>
+        <title>html топ</title>
+    </head>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+        #header{
+            background-color: gray;
         }
-        header {
-            background: #333;
-            color: #fff;
-            padding: 10px 0;
+        #body{
+            
+            background-color: darkgray;
+        }
+        h1, h2, h3, h4{
             text-align: center;
         }
-        main {
-            padding: 20px;
-        }
-        #upload-section {
-            margin-bottom: 20px;
-        }
-        #meme-title, #meme-description {
-            width: 80%;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        #upload-button {
-            padding: 10px 20px;
-        }
-        .meme {
-            margin: 10px 0;
-            cursor: pointer;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-        /* Модальное окно */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
-            padding-top: 60px;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
     </style>
-</head>
-<body>
-    <header>
-        <h1>Сайт Мемов с GitHub API</h1>
-    </header>
-    <main>
-        <section id="upload-section">
-            <h2>Опубликовать свой мем</h2>
-            <input type="text" id="meme-title" placeholder="Название мема" required>
-            <input type="text" id="meme-description" placeholder="Описание мема" required>
-            <input type="file" id="meme-image" accept="image/*" required>
-            <button id="upload-button">Опубликовать</button>
-        </section>
-        <section id="memes-archive">
-            <h2>Архив Мемов</h2>
-            <div id="memes-container"></div>
-        </section>
-    </main>
-
-    <!-- Модальное окно -->
-    <div id="memeModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 id="modal-title"></h2>
-            <img id="modal-image" src="" alt="Мем" style="max-width: 100%; height: auto;">
-            <p id="modal-description"></p>
+    <body>
+        <div id="header">
+             <h1>сайт мемчиков</h1>
         </div>
-    </div>
+        <div id="body">
+            <h2>окак</h2>
+            <h3>italian brainrot</h3>
+            <h3>окак</h3>
+            <h3>(а ниче тот факт)</h3>
+            <h3>ПОН</h3>
+            <h4>сделано командой cheldev</h4>
+        </div>
 
-    <script>
-        const GITHUB_USERNAME = 'cheldevco'; // Ваше имя пользователя
-const REPO_NAME = 'mems'; // Имя вашего репозитория
-const BRANCH_NAME = 'main'; // Убедитесь, что эта ветка существует
-
-document.getElementById('upload-button').addEventListener('click', function() {
-    const memeTitle = document.getElementById('meme-title').value;
-    const memeDescription = document.getElementById('meme-description').value;
-    const memeImage = document.getElementById('meme-image').files[0];
-
-    if (memeTitle && memeDescription && memeImage) {
-        const reader = new FileReader();
-        reader.onloadend = function() {
-            const base64data = reader.result.split(',')[1];
-            const fileName = memeImage.name;
-
-            // Загрузка изображения в репозиторий
-            fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/memes/${fileName}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': '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', // Укажите ваш токен доступа
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `Добавление мема: ${memeTitle}`,
-                    content: base64data,
-                    branch: BRANCH_NAME
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.message); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.content) {
-                    loadMemes(); // Перезагрузка мемов
-                    document.getElementById('meme-title').value = '';
-                    document.getElementById('meme-description').value = '';
-                    document.getElementById('meme-image').value = '';
-                } else {
-                    alert('Ошибка загрузки изображения: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error("Ошибка загрузки изображения:", error);
-                alert('Ошибка загрузки изображения: ' + error.message);
-            });
-        }
-        reader.readAsDataURL(memeImage);
-    } else {
-        alert('Пожалуйста, заполните все поля.');
-    }
-});
-
-
-
-        // Функция для загрузки мемов из репозитория
-        function loadMemes() {
-            const memesContainer = document.getElementById('memes-container');
-            memesContainer.innerHTML = ''; // Очистка контейнера
-
-            fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/memes`, {
-                headers: {
-                    'Authorization': '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' // Укажите ваш токен доступа
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                data.forEach(file => {
-                    const memeDiv = document.createElement('div');
-                    const imageUrl = file.download_url;
-                    memeDiv.classList.add('meme');
-                    memeDiv.innerHTML = `<strong>${file.name}</strong><br><img src="${imageUrl}" alt="Мем" onclick="showModal('${file.name}', '${imageUrl}', '${file.name}')">`;
-                    memesContainer.appendChild(memeDiv);
-                });
-            })
-            .catch(error => {
-                console.error("Ошибка загрузки мемов:", error);
-            });
-        }
-
-        // Функция для отображения модального окна
-        function showModal(title, url, description) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-image').src = url;
-            document.getElementById('modal-description').innerText = description;
-            document.getElementById('memeModal').style.display = "block";
-        }
-
-        // Закрытие модального окна
-        document.querySelector('.close').onclick = function() {
-            document.getElementById('memeModal').style.display = "none";
-        }
-
-        // Загрузка мемов при загрузке страницы
-        window.onload = loadMemes;
-    </script>
-</body>
+    </body>
 </html>
