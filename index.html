@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сайт Мемов</title>
+    <title>Сайт Мемов с GitHub API</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -73,13 +73,10 @@
             cursor: pointer;
         }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
 </head>
 <body>
     <header>
-        <h1>Сайт Мемов</h1>
+        <h1>Сайт Мемов с GitHub API</h1>
     </header>
     <main>
         <section id="upload-section">
@@ -106,20 +103,9 @@
     </div>
 
     <script>
-        // Ваши настройки Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyCwa_QQj01aKBiG6j66TRUzgwZ9Mii5dD0",
-            authDomain: "mems-76392.firebaseapp.com",
-            projectId: "mems-76392",
-            storageBucket: "mems-76392.firebasestorage.app",
-            messagingSenderId: "363836715675",
-            appId: "1:363836715675:web:e72d53a4ecae0da2864c3e"
-        };
-
-        // Инициализация Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
+        const GITHUB_USERNAME = 'cheldevco'; // Укажите ваше имя пользователя GitHub
+        const REPO_NAME = 'mems'; // Укажите имя вашего репозитория
+        const BRANCH_NAME = 'main'; // Укажите ветку, в которой хранятся изображения
 
         document.getElementById('upload-button').addEventListener('click', function() {
             const memeTitle = document.getElementById('meme-title').value;
@@ -127,37 +113,67 @@
             const memeImage = document.getElementById('meme-image').files[0];
 
             if (memeTitle && memeDescription && memeImage) {
-                const storageRef = storage.ref();
-                const memeRef = storageRef.child(`memes/${memeImage.name}`);
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64data = reader.result.split(',')[1];
+                    const fileName = memeImage.name;
 
-                memeRef.put(memeImage).then(() => {
-                    memeRef.getDownloadURL().then((url) => {
-                        // Сохранение в Firestore
-                        db.collection('memes').add({ title: memeTitle, description: memeDescription, url: url }).then(() => {
+                    // Загрузка изображения в репозиторий
+                    fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/memes/${fileName}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': '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', // Укажите ваш токен доступа
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: `Добавление мема: ${memeTitle}`,
+                            content: base64data,
+                            branch: BRANCH_NAME
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.content) {
                             loadMemes(); // Перезагрузка мемов
                             document.getElementById('meme-title').value = '';
                             document.getElementById('meme-description').value = '';
                             document.getElementById('meme-image').value = '';
-                        });
+                        } else {
+                            alert('Ошибка загрузки изображения: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Ошибка загрузки изображения:", error);
                     });
-                });
+                }
+                reader.readAsDataURL(memeImage);
             } else {
                 alert('Пожалуйста, заполните все поля.');
             }
         });
 
-        // Функция для загрузки мемов из Firestore
+        // Функция для загрузки мемов из репозитория
         function loadMemes() {
             const memesContainer = document.getElementById('memes-container');
             memesContainer.innerHTML = ''; // Очистка контейнера
-            db.collection('memes').get().then((querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    const memeData = doc.data();
+
+            fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/memes`, {
+                headers: {
+                    'Authorization': 'token ВАШ_GITHUB_TOKEN' // Укажите ваш токен доступа
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(file => {
                     const memeDiv = document.createElement('div');
+                    const imageUrl = file.download_url;
                     memeDiv.classList.add('meme');
-                    memeDiv.innerHTML = `<strong>${memeData.title}</strong><br><img src="${memeData.url}" alt="Мем" onclick="showModal('${memeData.title}', '${memeData.url}', '${memeData.description}')">`;
+                    memeDiv.innerHTML = `<strong>${file.name}</strong><br><img src="${imageUrl}" alt="Мем" onclick="showModal('${file.name}', '${imageUrl}', '${file.name}')">`;
                     memesContainer.appendChild(memeDiv);
                 });
+            })
+            .catch(error => {
+                console.error("Ошибка загрузки мемов:", error);
             });
         }
 
