@@ -122,7 +122,7 @@ document.getElementById('upload-button').addEventListener('click', function() {
             fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/memes/${fileName}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': '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', // Укажите ваш токен доступа
+                    'Authorization': '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', // Укажите ваш токен доступа
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -166,7 +166,7 @@ document.getElementById('upload-button').addEventListener('click', function() {
 
             fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/memes`, {
                 headers: {
-                    'Authorization': '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' // Укажите ваш токен доступа
+                    'Authorization': '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' // Укажите ваш токен доступа
                 }
             })
             .then(response => response.json())
